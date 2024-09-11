@@ -1,6 +1,28 @@
-# GardenFusion
+# Garden Fusion UI
 
-**TODO: Add description**
+What do you get when you combine Petal Components and Salad UI?  Garden Fusion.
+
+## Why does this exist?
+
+Garden Fusion sprouted from a desire to cultivate a more flexible and reliable component library for Phoenix LiveView. Here's why we planted these seeds:
+1. *Tailwind Inline Bliss*: Petal Components, while lovely, uses a class-based approach like this:
+```
+class={[
+  "pc-icon-button",
+  @disabled && "pc-button--disabled",
+  "pc-icon-button-bg--#{@color}",
+  "pc-icon-button--#{@color}",
+  "pc-icon-button--#{@size}",
+  @class
+]}
+```
+This makes tweaking styles about as fun as untangling garden hoses. Garden Fusion opts for inline Tailwind classes, allowing you to prune and shape your components with ease.
+
+
+2. *No More Wilting Forms*: Salad UI, while nutritious, had some components that were less than reliable. Inputs didn't always play nice with forms, leaving developers with a bad taste. Garden Fusion ensures all components are fresh and function as expected.
+
+3.  *Installer*: We've included a magical installer that's so nice, it's practically a miracle.  Components are installed directly into your project structure, so you can modify and customize with ease
+
 
 ## Installation
 
