@@ -1,10 +1,10 @@
-defmodule AlgoAlchemyWeb.SaladUI do
+defmodule SaladUI do
   @moduledoc false
   def component do
     quote do
       use Phoenix.Component
 
-      import AlgoAlchemyWeb.SaladUI.Helpers
+      import SaladUI.Helpers
 
       # alias OrangeCmsWeb.Components.LadUI.LadJS
       alias Phoenix.LiveView.JS

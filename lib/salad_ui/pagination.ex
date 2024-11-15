@@ -104,7 +104,7 @@ defmodule SaladUI.Pagination do
   """
   attr(:"is-active", :boolean, default: false)
   attr(:size, :string, default: "icon")
-  attr(:class, :string, default: nil)
+  attr(:class, :any, default: nil)
   attr(:rest, :global)
   slot(:inner_block, required: true)
 

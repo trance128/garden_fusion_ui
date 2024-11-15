@@ -1,7 +1,7 @@
 defmodule SaladUI.Form do
   @moduledoc false
   use     SaladUI, :component
-  import  GardenFusion.Label, only: [label: 1]
+  import  GardenFusion.Label
 
   @doc """
   Implement of form component. SaladUI doesn't define its own form, but it provides a set of form-related components to help you build your own form.
