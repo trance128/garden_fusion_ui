@@ -2,15 +2,16 @@ defmodule PC.Badge do
   use Phoenix.Component
 
   attr(:size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"])
-  attr(:variant, :string, default: "light", values: ["light", "dark", "outline"])
+  attr(:variant, :string, default: "light", values: ["light", "dark", "soft", "outline"])
 
   attr(:color, :string,
     default: "primary",
     values: ["primary", "secondary", "info", "success", "warning", "danger", "gray"]
   )
 
+  attr(:role, :string, default: "note", values: ["note", "status"])
   attr(:with_icon, :boolean, default: false, doc: "adds some icon base classes")
-  attr(:class, :string, default: "", doc: "CSS class for parent div")
+  attr(:class, :any, default: nil, doc: "CSS class for parent div")
   attr(:label, :string, default: nil, doc: "label your badge")
   attr(:rest, :global)
   slot(:inner_block, required: false)
@@ -19,6 +20,7 @@ defmodule PC.Badge do
     ~H"""
     <badge
       {@rest}
+      role={@role}
       class={[
         "inline-flex items-center justify-center border rounded focus:outline-none",
         "inline-flex items-center justify-center border rounded focus:outline-none--#{@size}",

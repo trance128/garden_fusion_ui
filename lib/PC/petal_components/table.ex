@@ -15,7 +15,8 @@ defmodule PC.Table do
       </.table>
   """
   attr :id, :string
-  attr :class, :string, default: "", doc: "CSS class"
+  attr :class, :any, default: nil, doc: "CSS class"
+  attr :variant, :string, default: "basic", values: ["ghost", "basic"]
   attr :rows, :list, default: [], doc: "the list of rows to render"
   attr :row_id, :any, default: nil, doc: "the function for generating the row id"
   attr :row_click, :any, default: nil, doc: "the function for handling phx-click on each row"
@@ -26,13 +27,13 @@ defmodule PC.Table do
 
   slot :col do
     attr :label, :string
-    attr :class, :string
-    attr :row_class, :string
+    attr :class, :any
+    attr :row_class, :any
   end
 
   slot :empty_state,
     doc: "A message to show when the table is empty, to be used together with :col" do
-    attr :row_class, :string
+    attr :row_class, :any
   end
 
   attr :rest, :global, include: ~w(colspan rowspan)
@@ -46,7 +47,7 @@ defmodule PC.Table do
     assigns = assign_new(assigns, :id, fn -> "table_#{Ecto.UUID.generate()}" end)
 
     ~H"""
-    <table class={["min-w-full overflow-hidden rounded-sm shadow table-auto ring-1 ring-gray-200 dark:ring-gray-800 sm:rounded", @class]} {@rest}>
+    <table class={["pc-table--#{@variant}", @class]} {@rest}>
       <%= if length(@col) > 0 do %>
         <thead>
           <.tr>
@@ -55,7 +56,7 @@ defmodule PC.Table do
         </thead>
         <tbody id={@id} phx-update={match?(%Phoenix.LiveView.LiveStream{}, @rows) && "stream"}>
           <%= if length(@empty_state) > 0 do %>
-            <.tr class="hidden only:table-row">
+            <.tr id={@id <> "-empty"} class="hidden only:table-row">
               <.td
                 :for={empty_state <- @empty_state}
                 colspan={length(@col)}
@@ -68,12 +69,16 @@ defmodule PC.Table do
           <.tr
             :for={row <- @rows}
             id={@row_id && @row_id.(row)}
-            class={"group #{if @row_click, do: "hover:bg-gray-50 dark:hover:bg-gray-800", else: ""}"}
+            class={["group", @row_click && "hover:bg-gray-50 dark:hover:bg-gray-800"]}
           >
             <.td
               :for={{col, i} <- Enum.with_index(@col)}
               phx-click={@row_click && @row_click.(row)}
-              class={"#{if @row_click, do: "hover:cursor-pointer", else: ""} #{if i == 0, do: "font-semibold", else: ""} #{if col[:row_class], do: col[:row_class], else: ""}"}
+              class={[
+                @row_click && "hover:cursor-pointer",
+                i == 0 && "font-semibold",
+                col[:row_class] && col[:row_class]
+              ]}
             >
               <%= render_slot(col, @row_item.(row)) %>
             </.td>
@@ -86,7 +91,7 @@ defmodule PC.Table do
     """
   end
 
-  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:rest, :global, include: ~w(colspan rowspan))
   slot(:inner_block, required: false)
 
@@ -98,7 +103,7 @@ defmodule PC.Table do
     """
   end
 
-  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
@@ -110,7 +115,7 @@ defmodule PC.Table do
     """
   end
 
-  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:rest, :global, include: ~w(colspan headers rowspan))
   slot(:inner_block, required: false)
 
@@ -122,7 +127,7 @@ defmodule PC.Table do
     """
   end
 
-  attr(:class, :any, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:label, :string, default: nil, doc: "Adds a label your user, e.g name")
   attr(:sub_label, :string, default: nil, doc: "Adds a sub-label your to your user, e.g title")
   attr(:rest, :global)

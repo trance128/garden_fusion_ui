@@ -1,5 +1,6 @@
 defmodule PC.Field do
   use Phoenix.Component
+  import PC.Icon
 
   @doc """
   Renders an input with label and error messages. If you just want an input, check out input.ex
@@ -32,8 +33,27 @@ defmodule PC.Field do
     default: "text",
     values:
       ~w(checkbox checkbox-group color date datetime-local email file hidden month number password
-               range radio-group search select switch tel text textarea time url week),
+               range radio-group radio-card search select switch tel text textarea time url week),
     doc: "the type of input"
+
+  attr :size, :string,
+    default: "md",
+    values: ~w(xs sm md lg xl),
+    doc: "the size of the switch (xs, sm, md, lg or xl) or radio card (sm, md or lg)"
+
+  attr :variant, :any, default: "outline", doc: "outline, classic - used by radio-card"
+
+  attr :viewable, :boolean,
+    default: false,
+    doc: "If true, adds a toggle to show/hide the password text"
+
+  attr :copyable, :boolean,
+    default: false,
+    doc: "If true, adds a copy button to the field and disables the input"
+
+  attr :clearable, :boolean,
+    default: false,
+    doc: "If true, adds a clear button to clear the field value"
 
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
@@ -61,10 +81,10 @@ defmodule PC.Field do
 
   attr :rows, :string, default: "4", doc: "rows for textarea"
 
-  attr :class, :string, default: nil, doc: "the class to add to the input"
-  attr :wrapper_class, :string, default: nil, doc: "the wrapper div classes"
+  attr :class, :any, default: nil, doc: "the class to add to the input"
+  attr :wrapper_class, :any, default: nil, doc: "the wrapper div classes"
   attr :help_text, :string, default: nil, doc: "context/help for your field"
-  attr :label_class, :string, default: nil, doc: "extra CSS for your label"
+  attr :label_class, :any, default: nil, doc: "extra CSS for your label"
   attr :selected, :any, default: nil, doc: "the selected value for select inputs"
 
   attr :required, :boolean,
@@ -164,13 +184,14 @@ defmodule PC.Field do
 
   def field(%{type: "switch", value: value} = assigns) do
     assigns =
-      assign_new(assigns, :checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
+      assigns
+      |> assign_new(:checked, fn -> Phoenix.HTML.Form.normalize_value("checkbox", value) end)
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
       <label class={["inline-flex items-center gap-3 text-sm font-normal text-gray-900 cursor-pointer dark:text-gray-200", @label_class]}>
         <input type="hidden" name={@name} value="false" />
-        <label class="relative inline-flex items-center justify-center flex-shrink-0 w-10 h-5 cursor-pointer">
+        <label class={["relative inline-flex items-center justify-center flex-shrink-0 cursor-pointer", "relative inline-flex items-center justify-center flex-shrink-0 cursor-pointer--#{@size}"]}>
           <input
             type="checkbox"
             id={@id}
@@ -182,8 +203,8 @@ defmodule PC.Field do
             {@rest}
           />
 
-          <span class="absolute h-6 mx-auto transition-colors duration-200 ease-in-out bg-gray-200 border rounded-full pointer-events-none w-11 dark:bg-gray-700 dark:border-gray-600 peer-checked:bg-primary-500"></span>
-          <span class="absolute left-0 inline-block w-5 h-5 transition-transform duration-200 ease-in-out transform translate-x-0 bg-white rounded-full shadow pointer-events-none peer-checked:translate-x-5 ring-0"></span>
+          <span class={["absolute mx-auto transition-colors duration-200 ease-in-out bg-gray-200 border border-gray-300 rounded-full pointer-events-none dark:bg-gray-700 dark:border-gray-600 peer-checked:bg-primary-500", "absolute mx-auto transition-colors duration-200 ease-in-out bg-gray-200 border border-gray-300 rounded-full pointer-events-none dark:bg-gray-700 dark:border-gray-600 peer-checked:bg-primary-500--#{@size}"]}></span>
+          <span class={["absolute left-0 inline-block transition-transform duration-200 ease-in-out transform translate-x-0 bg-white rounded-full shadow pointer-events-none ring-0", "absolute left-0 inline-block transition-transform duration-200 ease-in-out transform translate-x-0 bg-white rounded-full shadow pointer-events-none ring-0--#{@size}"]}></span>
         </label>
         <div class={[@required && "block mb-2 text-sm font-medium text-gray-900 dark:text-gray-200--required"]}><%= @label %></div>
       </label>
@@ -209,7 +230,7 @@ defmodule PC.Field do
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
-      <.field_label required={@required} for={@id} class={@label_class}>
+      <.field_label required={@required} class={@label_class}>
         <%= @label %>
       </.field_label>
       <input type="hidden" name={@name} value="" />
@@ -256,7 +277,7 @@ defmodule PC.Field do
 
     ~H"""
     <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
-      <.field_label required={@required} for={@id} class={@label_class}>
+      <.field_label required={@required} class={@label_class}>
         <%= @label %>
       </.field_label>
       <div class={[
@@ -296,6 +317,66 @@ defmodule PC.Field do
     """
   end
 
+  def field(%{type: "radio-card"} = assigns) do
+    assigns =
+      assigns
+      |> assign_new(:checked, fn -> nil end)
+      |> assign_new(:options, fn -> [] end)
+      |> assign_new(:group_layout, fn -> "row" end)
+      |> assign_new(:id_prefix, fn -> assigns.id || assigns.name || "radio_card" end)
+
+    ~H"""
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+      <.field_label required={@required} class={@label_class}>
+        <%= @label %>
+      </.field_label>
+      <div class={[
+        "flex gap-4",
+        "flex gap-4--#{@group_layout}",
+        @class
+      ]}>
+        <input type="hidden" name={@name} value="" />
+        <%= for option <- @options do %>
+          <label class={[
+            "relative transition-all cursor-pointer select-none flex items-center justify-center text-left text-gray-900 dark:text-white",
+            "relative transition-all cursor-pointer select-none flex items-center justify-center text-left text-gray-900 dark:text-white--#{@size}",
+            "relative transition-all cursor-pointer select-none flex items-center justify-center text-left text-gray-900 dark:text-white--#{@variant}",
+            option[:disabled] && "opacity-50 cursor-not-allowed"
+          ]}>
+            <input
+              type="radio"
+              name={@name}
+              id={"#{@id_prefix}_#{option[:value]}"}
+              value={option[:value]}
+              disabled={option[:disabled]}
+              checked={
+                to_string(option[:value]) == to_string(@value) ||
+                  to_string(option[:value]) == to_string(@checked)
+              }
+              class="sr-only sr-only"
+              {@rest}
+            />
+            <div class="absolute inset-0 rounded-lg"></div>
+            <div class="relative pointer-events-none">
+              <div class="font-semibold"><%= option[:label] %></div>
+              <div :if={option[:description]} class="text-sm font-normal text-gray-600 dark:text-gray-400">
+                <%= option[:description] %>
+              </div>
+            </div>
+          </label>
+        <% end %>
+        <%= if @empty_message && Enum.empty?(@options) do %>
+          <div class="flex gap-4--empty-message">
+            <%= @empty_message %>
+          </div>
+        <% end %>
+      </div>
+      <.field_error :for={msg <- @errors}><%= msg %></.field_error>
+      <.field_help_text help_text={@help_text} />
+    </.field_wrapper>
+    """
+  end
+
   def field(%{type: "hidden"} = assigns) do
     ~H"""
     <input
@@ -309,7 +390,177 @@ defmodule PC.Field do
     """
   end
 
-  # All other inputs text, datetime-local, url, password, etc. are handled here...
+  def field(%{type: "password", viewable: true} = assigns) do
+    assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
+
+    ~H"""
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+      <.field_label required={@required} for={@id} class={@label_class}>
+        <%= @label %>
+      </.field_label>
+      <div class="relative" x-data="{ show: false }">
+        <input
+          x-bind:type="show ? 'text' : 'password'"
+          name={@name}
+          id={@id}
+          value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+          class={[@class, "pr-10"]}
+          required={@required}
+          {@rest}
+        />
+        <button type="button" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500" @click="show = !show">
+          <span x-show="!show" class="flex items-center">
+            <.icon name="hero-eye-solid" class="w-5 h-5 text-gray-400" />
+          </span>
+          <span x-show="show" class="flex items-center" style="display: none;">
+            <.icon name="hero-eye-slash-solid" class="w-5 h-5 text-gray-400" />
+          </span>
+        </button>
+      </div>
+      <.field_error :for={msg <- @errors}><%= msg %></.field_error>
+      <.field_help_text help_text={@help_text} />
+    </.field_wrapper>
+    """
+  end
+
+  def field(%{type: type, copyable: true} = assigns) when type in ["text", "url", "email"] do
+    assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
+
+    ~H"""
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+      <!-- Field Label -->
+      <.field_label required={@required} for={@id} class={@label_class}>
+        <%= @label %>
+      </.field_label>
+      <!-- Copyable Field Wrapper -->
+      <div class="relative" x-data="{ copied: false }">
+        <!-- Input Field -->
+        <input
+          x-ref="copyInput"
+          type={@type || "text"}
+          name={@name}
+          id={@id}
+          value={Phoenix.HTML.Form.normalize_value(@type || "text", @value)}
+          class={[@class, "pr-10 cursor-text"]}
+          readonly
+          {@rest}
+        />
+        <!-- Copy Button -->
+        <button
+          type="button"
+          class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 bg-transparent border-none cursor-pointer"
+          @click="
+          navigator.clipboard.writeText($refs.copyInput.value)
+            .then(() => { copied = true; setTimeout(() => copied = false, 2000); })
+        "
+        >
+          <!-- Copy Icon -->
+          <span x-show="!copied" class="flex items-center">
+            <.icon name="hero-clipboard-document-solid" class="w-5 h-5 text-gray-400" />
+          </span>
+          <!-- Copied Icon -->
+          <span x-show="copied" class="flex items-center" style="display: none;">
+            <.icon name="hero-clipboard-document-check-solid" class="w-5 h-5 text-gray-400" />
+          </span>
+        </button>
+      </div>
+      <!-- Error Message -->
+      <.field_error :for={msg <- @errors}><%= msg %></.field_error>
+      <!-- Help Text -->
+      <.field_help_text help_text={@help_text} />
+    </.field_wrapper>
+    """
+  end
+
+  def field(%{type: type, clearable: true} = assigns)
+      when type in ["text", "search", "url", "email", "tel"] do
+    assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
+
+    ~H"""
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+      <!-- Field Label -->
+      <.field_label required={@required} for={@id} class={@label_class}>
+        <%= @label %>
+      </.field_label>
+      <!-- Clearable Field Wrapper -->
+      <div
+        class="relative"
+        x-data="{ showClearButton: false }"
+        x-init="showClearButton = $refs.clearInput.value.length > 0"
+      >
+        <!-- Input Field -->
+        <input
+          x-ref="clearInput"
+          type={@type || "text"}
+          name={@name}
+          id={@id}
+          value={@value}
+          class={[@class, "pr-10"]}
+          required={@required}
+          {@rest}
+          x-on:input="showClearButton = $event.target.value.length > 0"
+        />
+        <!-- Clear Button -->
+        <button
+          type="button"
+          class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 bg-transparent border-none cursor-pointer"
+          x-show="showClearButton"
+          x-on:click="
+            $refs.clearInput.value = '';
+            showClearButton = false;
+            $refs.clearInput.dispatchEvent(new Event('input'));
+          "
+          style="display: none;"
+          aria-label="Clear input"
+        >
+          <!-- Clear Icon -->
+          <span class="flex items-center">
+            <.icon name="hero-x-mark-solid" class="w-5 h-5 text-gray-500 dark:text-gray-400" />
+          </span>
+        </button>
+      </div>
+      <!-- Error Message -->
+      <.field_error :for={msg <- @errors}><%= msg %></.field_error>
+      <!-- Help Text -->
+      <.field_help_text help_text={@help_text} />
+    </.field_wrapper>
+    """
+  end
+
+  def field(%{type: type} = assigns)
+      when type in ["date", "datetime-local", "time", "month", "week"] do
+    assigns =
+      assign(assigns,
+        class: [assigns.class, "pc-text-input [-webkit-appearance:none] [&::-webkit-datetime-edit-fields-wrapper]:p-0 [&::-webkit-date-and-time-value]:text-black dark:[&::-webkit-date-and-time-value]:text-white [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute [&::-webkit-calendar-picker-indicator]:inset-y-0 [&::-webkit-calendar-picker-indicator]:right-0 [&::-webkit-calendar-picker-indicator]:w-10 [&::-webkit-calendar-picker-indicator]:h-full [&::-webkit-calendar-picker-indicator]:cursor-pointer"],
+        icon_name: get_icon_for_type(assigns.type)
+      )
+
+    ~H"""
+    <.field_wrapper errors={@errors} name={@name} class={@wrapper_class}>
+      <.field_label required={@required} for={@id} class={@label_class}>
+        <%= @label %>
+      </.field_label>
+      <div class="relative">
+        <input
+          type={@type}
+          name={@name}
+          id={@id}
+          value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+          class={@class}
+          required={@required}
+          {@rest}
+        />
+        <div class="absolute inset-y-0 right-0 flex items-center my-1 mr-3 bg-white pointer-events-none dark:bg-gray-800">
+          <.icon name={@icon_name} class="w-5 h-5 text-gray-400" />
+        </div>
+      </div>
+      <.field_error :for={msg <- @errors}><%= msg %></.field_error>
+      <.field_help_text help_text={@help_text} />
+    </.field_wrapper>
+    """
+  end
+
+  # All other inputs (text, url, etc.) are handled here...
   def field(assigns) do
     assigns = assign(assigns, class: [assigns.class, get_class_for_type(assigns.type)])
 
@@ -333,7 +584,7 @@ defmodule PC.Field do
     """
   end
 
-  attr :class, :string, default: nil
+  attr :class, :any, default: nil
   attr :errors, :list, default: []
   attr :name, :string
   attr :rest, :global
@@ -359,16 +610,22 @@ defmodule PC.Field do
   Renders a label.
   """
   attr :for, :string, default: nil
-  attr :class, :string, default: nil
+  attr :class, :any, default: nil
   attr :rest, :global
   attr :required, :boolean, default: false
   slot :inner_block, required: true
 
   def field_label(assigns) do
     ~H"""
-    <label for={@for} class={["block mb-2 text-sm font-medium text-gray-900 dark:text-gray-200", @class, @required && "block mb-2 text-sm font-medium text-gray-900 dark:text-gray-200--required"]} {@rest}>
-      <%= render_slot(@inner_block) %>
-    </label>
+    <%= if @for do %>
+      <label for={@for} class={["block mb-2 text-sm font-medium text-gray-900 dark:text-gray-200", @class, @required && "block mb-2 text-sm font-medium text-gray-900 dark:text-gray-200--required"]} {@rest}>
+        <%= render_slot(@inner_block) %>
+      </label>
+    <% else %>
+      <span class={["block mb-2 text-sm font-medium text-gray-900 dark:text-gray-200", @class, @required && "block mb-2 text-sm font-medium text-gray-900 dark:text-gray-200--required"]} {@rest}>
+        <%= render_slot(@inner_block) %>
+      </span>
+    <% end %>
     """
   end
 
@@ -385,7 +642,7 @@ defmodule PC.Field do
     """
   end
 
-  attr :class, :string, default: "", doc: "extra classes for the help text"
+  attr :class, :any, default: nil, doc: "extra classes for the help text"
   attr :help_text, :string, default: nil, doc: "context/help for your field"
   slot :inner_block, required: false
   attr :rest, :global
@@ -404,6 +661,12 @@ defmodule PC.Field do
   defp get_class_for_type("file"), do: "text-sm rounded-md cursor-pointer focus:outline-none file:border-0 text-slate-500 file:text-primary-700 file:font-semibold file:px-4 file:py-2 file:mr-6 file:rounded-md hover:file:bg-primary-100 file:bg-primary-200 dark:file:bg-primary-300 hover:dark:file:bg-primary-200"
   defp get_class_for_type("range"), do: "w-full border-gray-300 cursor-pointer focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500"
   defp get_class_for_type(_), do: "block w-full border-gray-300 rounded-md shadow-sm focus:border-primary-500 focus:ring-primary-500 dark:border-gray-600 dark:focus:border-primary-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-300 dark:disabled:bg-gray-700 focus:outline-none"
+
+  defp get_icon_for_type("date"), do: "hero-calendar"
+  defp get_icon_for_type("datetime-local"), do: "hero-calendar"
+  defp get_icon_for_type("month"), do: "hero-calendar"
+  defp get_icon_for_type("week"), do: "hero-calendar"
+  defp get_icon_for_type("time"), do: "hero-clock"
 
   defp translate_error({msg, opts}) do
     config_translator = get_translator_from_config()

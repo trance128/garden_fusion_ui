@@ -21,7 +21,10 @@ defmodule PC.UserDropdownMenu do
             <.avatar size="sm" />
           <% end %>
 
-          <Heroicons.chevron_down mini class="w-4 h-4 ml-1 -mr-1 text-gray-400 dark:text-gray-100" />
+          <.icon
+            name="hero-chevron-down-mini"
+            class="w-4 h-4 ml-1 -mr-1 text-gray-400 dark:text-gray-100"
+          />
         </div>
       </:trigger_element>
       <%= for menu_item <- @user_menu_items do %>
@@ -30,20 +33,17 @@ defmodule PC.UserDropdownMenu do
           method={if menu_item[:method], do: menu_item[:method], else: nil}
           to={menu_item.path}
         >
-          <%= if is_atom(menu_item.icon) do %>
-            <.icon outline name={menu_item.icon} class="w-5 h-5 text-gray-500 dark:text-gray-400" />
-          <% end %>
-
-          <%= if is_function(menu_item.icon) do %>
-            <%= Phoenix.LiveView.TagEngine.component(
-              menu_item.icon,
-              [class: "w-5 h-5 text-gray-500 dark:text-gray-400"],
-              {__ENV__.module, __ENV__.function, __ENV__.file, __ENV__.line}
-            ) %>
-          <% end %>
-
-          <%= if is_binary(menu_item.icon) do %>
-            <%= Phoenix.HTML.raw(menu_item.icon) %>
+          <%= cond do %>
+            <% is_function(menu_item.icon) -> %>
+              <%= Phoenix.LiveView.TagEngine.component(
+                menu_item.icon,
+                [class: "w-5 h-5 text-gray-500 dark:text-gray-400"],
+                {__ENV__.module, __ENV__.function, __ENV__.file, __ENV__.line}
+              ) %>
+            <% is_binary(menu_item.icon) && String.match?(menu_item.icon, ~r/svg|img/) -> %>
+              <%= Phoenix.HTML.raw(menu_item.icon) %>
+            <% true -> %>
+              <.icon name={menu_item.icon} class="w-5 h-5 text-gray-500 dark:text-gray-400" />
           <% end %>
 
           <%= menu_item.label %>

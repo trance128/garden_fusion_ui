@@ -9,11 +9,11 @@ defmodule PC.Typography do
   # <.h1 label="Heading" />
   # <.h1 label="Heading" class="mb-10" color_class="text-blue-500" />
 
-  attr(:class, :any, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:label, :string, default: nil, doc: "label your heading")
   attr(:no_margin, :boolean, default: nil, doc: "removes margin from headings")
   attr(:underline, :boolean, default: false, doc: "underlines a heading")
-  attr(:color_class, :string, default: nil, doc: "adds a color class")
+  attr(:color_class, :any, default: nil, doc: "adds a color class")
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
@@ -25,11 +25,11 @@ defmodule PC.Typography do
     """
   end
 
-  attr(:class, :any, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:label, :string, default: nil, doc: "label your heading")
   attr(:no_margin, :boolean, default: nil, doc: "removes margin from headings")
   attr(:underline, :boolean, default: false, doc: "underlines a heading")
-  attr(:color_class, :string, default: nil, doc: "adds a color class")
+  attr(:color_class, :any, default: nil, doc: "adds a color class")
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
@@ -41,11 +41,11 @@ defmodule PC.Typography do
     """
   end
 
-  attr(:class, :any, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:label, :string, default: nil, doc: "label your heading")
   attr(:no_margin, :boolean, default: nil, doc: "removes margin from headings")
   attr(:underline, :boolean, default: false, doc: "underlines a heading")
-  attr(:color_class, :string, default: nil, doc: "adds a color class")
+  attr(:color_class, :any, default: nil, doc: "adds a color class")
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
@@ -57,11 +57,11 @@ defmodule PC.Typography do
     """
   end
 
-  attr(:class, :any, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:label, :string, default: nil, doc: "label your heading")
   attr(:no_margin, :boolean, default: nil, doc: "removes margin from headings")
   attr(:underline, :boolean, default: false, doc: "underlines a heading")
-  attr(:color_class, :string, default: nil, doc: "adds a color class")
+  attr(:color_class, :any, default: nil, doc: "adds a color class")
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
@@ -73,11 +73,11 @@ defmodule PC.Typography do
     """
   end
 
-  attr(:class, :any, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:label, :string, default: nil, doc: "label your heading")
   attr(:no_margin, :boolean, default: nil, doc: "removes margin from headings")
   attr(:underline, :boolean, default: false, doc: "underlines a heading")
-  attr(:color_class, :string, default: nil, doc: "adds a color class")
+  attr(:color_class, :any, default: nil, doc: "adds a color class")
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
@@ -99,19 +99,27 @@ defmodule PC.Typography do
     ]
   end
 
-  attr(:class, :any, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
+  attr(:no_margin, :boolean, default: nil, doc: "removes margin from paragraph")
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
   def p(assigns) do
     ~H"""
-    <p class={["leading-5 text-gray-700 dark:text-gray-300", "mb-2", @class]} {@rest}>
+    <p
+      class={[
+        "leading-5 text-gray-700 dark:text-gray-300",
+        !@no_margin && "mb-2",
+        @class
+      ]}
+      {@rest}
+    >
       <%= render_slot(@inner_block) %>
     </p>
     """
   end
 
-  attr(:class, :any, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
@@ -131,7 +139,7 @@ defmodule PC.Typography do
       </.ul>
   """
 
-  attr(:class, :any, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
@@ -151,7 +159,7 @@ defmodule PC.Typography do
       </.ol>
   """
 
-  attr(:class, :any, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:rest, :global)
   slot(:inner_block, required: false)
 

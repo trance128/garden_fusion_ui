@@ -32,7 +32,7 @@ defmodule PC.SlideOver do
     doc: "sets container max-width"
   )
 
-  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:hide, :boolean, default: false, doc: "slideover is hidden")
   attr(:rest, :global)
   slot(:inner_block, required: false)
@@ -41,7 +41,7 @@ defmodule PC.SlideOver do
     ~H"""
     <div
       {@rest}
-      phx-mounted={!@hide && show_slide_over()}
+      phx-mounted={!@hide && show_slide_over(@origin)}
       phx-remove={hide_slide_over(@origin, @close_slide_over_target)}
       class="hidden pc-slide-over"
       id="slide-over"
@@ -49,8 +49,9 @@ defmodule PC.SlideOver do
       <div id="slide-over-overlay" class="fixed inset-0 z-50 transition-opacity bg-gray-900 dark:bg-gray-900 bg-opacity-30 dark:bg-opacity-70" aria-hidden="true"></div>
 
       <div
-        class={["fixed inset-0 z-50 flex overflow-hidden transform", get_margin_classes(@origin), @class]}
+        class={["fixed inset-0 z-50 flex overflow-hidden", get_margin_classes(@origin), @class]}
         role="dialog"
+        aria-label="slide-over-content-wrapper"
         aria-modal="true"
       >
         <div
@@ -89,7 +90,9 @@ defmodule PC.SlideOver do
     """
   end
 
-  def show_slide_over() do
+  def show_slide_over(origin) do
+    {start_class, end_class} = get_transition_classes(origin)
+
     %JS{}
     |> JS.show(to: "#slide-over")
     |> JS.show(
@@ -98,9 +101,11 @@ defmodule PC.SlideOver do
     )
     |> JS.show(
       to: "#slide-over-content",
-      transition:
-        {"transition-all transform ease-out duration-300", "opacity-0 sm:translate-y-0",
-         "opacity-100 translate-y-0"}
+      transition: {
+        "transition-all transform ease-out duration-300",
+        start_class,
+        end_class
+      }
     )
     |> JS.add_class("overflow-hidden", to: "body")
     |> JS.focus_first(to: "#slide-over-content")
@@ -111,19 +116,7 @@ defmodule PC.SlideOver do
   #   {:noreply, push_patch(socket, to: Routes.moderate_users_path(socket, :index))}
   # end
   def hide_slide_over(origin, close_slide_over_target \\ nil) do
-    origin_class =
-      case origin do
-        x when x in ["left", "right"] -> "translate-x-0"
-        x when x in ["top", "bottom"] -> "translate-y-0"
-      end
-
-    destination_class =
-      case origin do
-        "left" -> "-translate-x-full"
-        "right" -> "translate-x-full"
-        "top" -> "-translate-y-full"
-        "bottom" -> "translate-y-full"
-      end
+    {end_class, start_class} = get_transition_classes(origin)
 
     js =
       JS.remove_class("overflow-hidden", to: "body")
@@ -138,11 +131,12 @@ defmodule PC.SlideOver do
       |> JS.hide(
         transition: {
           "ease-in duration-200",
-          origin_class,
-          destination_class
+          start_class,
+          end_class
         },
         to: "#slide-over-content"
       )
+      |> JS.hide(to: "#slide-over")
 
     if close_slide_over_target do
       JS.push(js, "close_slide_over", target: close_slide_over_target)
@@ -151,15 +145,24 @@ defmodule PC.SlideOver do
     end
   end
 
+  defp get_transition_classes(origin) do
+    case origin do
+      "left" -> {"-translate-x-full", "translate-x-0"}
+      "right" -> {"translate-x-full", "translate-x-0"}
+      "top" -> {"-translate-y-full", "translate-y-0"}
+      "bottom" -> {"translate-y-full", "translate-y-0"}
+    end
+  end
+
   defp get_classes(max_width, origin, class) do
     base_classes = "w-full max-h-full overflow-auto bg-white shadow-lg dark:bg-gray-800"
 
     slide_over_classes =
       case origin do
-        "left" -> "transition translate-x-0"
-        "right" -> "transition translate-x-0 absolute right-0 inset-y-0"
-        "top" -> "transition translate-y-0 absolute inset-x-0"
-        "bottom" -> "transition translate-y-0 absolute inset-x-0 bottom-0"
+        "left" -> "fixed left-0 inset-y-0 transform -translate-x-full"
+        "right" -> "fixed right-0 inset-y-0 transform translate-x-full"
+        "top" -> "fixed inset-x-0 top-0 transform -translate-y-full"
+        "bottom" -> "fixed inset-x-0 bottom-0 transform translate-y-full"
       end
 
     max_width_class =

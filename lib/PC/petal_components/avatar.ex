@@ -1,9 +1,12 @@
 defmodule PC.Avatar do
   use Phoenix.Component
 
+  import PC.Icon
+
   attr(:src, :string, default: nil, doc: "hosted avatar URL")
+  attr(:alt, :string, default: nil, doc: "alt text for avatar image")
   attr(:size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"])
-  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:name, :string, default: nil, doc: "name for placeholder initials")
 
   attr(:random_color, :boolean,
@@ -18,19 +21,23 @@ defmodule PC.Avatar do
     <%= if src_blank?(@src) && !@name do %>
       <div
         {@rest}
+        role="img"
+        aria-label="user avatar"
         class={[
           "relative inline-block overflow-hidden bg-gray-100 rounded-full dark:bg-gray-700",
           "pc-avatar--#{@size}",
           @class
         ]}
       >
-        <Heroicons.user solid class="relative w-full h-full text-gray-300 dark:text-gray-300 dark:bg-gray-700 top-[12%] scale-[1.15] transform" />
+        <.icon name="hero-user-solid" class="relative w-full h-full bg-gray-300 top-[12%] scale-[1.15] transform !important" />
       </div>
     <% else %>
       <%= if src_blank?(@src) && @name do %>
         <div
           {@rest}
           style={maybe_generate_random_color(@random_color, @name)}
+          role="img"
+          aria-label="user avatar"
           class={[
             "flex items-center justify-center font-semibold text-gray-500 uppercase bg-gray-100 rounded-full dark:bg-gray-700 dark:text-gray-300",
             "pc-avatar--#{@size}",
@@ -43,6 +50,7 @@ defmodule PC.Avatar do
         <img
           {@rest}
           src={@src}
+          alt={@alt || @src}
           class={[
             "object-cover rounded-full",
             "pc-avatar--#{@size}",
@@ -55,7 +63,7 @@ defmodule PC.Avatar do
   end
 
   attr(:size, :string, default: "md", values: ["xs", "sm", "md", "lg", "xl"])
-  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:avatars, :list, default: [], doc: "list of your hosted avatar URLs")
   attr(:rest, :global)
 

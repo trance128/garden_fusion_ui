@@ -2,6 +2,7 @@ defmodule PC.Dropdown do
   use Phoenix.Component
   alias Phoenix.LiveView.JS
   alias PC.Link
+  import PC.Icon
 
   @transition_in_base "transition transform ease-out duration-100"
   @transition_in_start "transform opacity-0 scale-95"
@@ -13,14 +14,14 @@ defmodule PC.Dropdown do
 
   attr :options_container_id, :string
   attr :label, :string, default: nil, doc: "labels your dropdown option"
-  attr :class, :string, default: "", doc: "any extra CSS class for the parent container"
+  attr :class, :any, default: nil, doc: "any extra CSS class for the parent container"
 
-  attr :menu_items_wrapper_class, :string,
-    default: "",
+  attr :menu_items_wrapper_class, :any,
+    default: nil,
     doc: "any extra CSS class for menu item wrapper container"
 
   attr :js_lib, :string,
-    default: "alpine_js",
+    default: PC.default_js_lib(),
     values: ["alpine_js", "live_view_js"],
     doc: "javascript library used for toggling"
 
@@ -33,7 +34,7 @@ defmodule PC.Dropdown do
   @doc """
     <.dropdown label="Dropdown" js_lib="alpine_js|live_view_js">
       <.dropdown_menu_item link_type="button">
-        <Heroicons.home class="w-5 h-5 text-gray-500" />
+        <.icon name="hero-home" class="w-5 h-5 text-gray-500" />
         Button item with icon
       </.dropdown_menu_item>
       <.dropdown_menu_item link_type="a" to="/" label="a item" />
@@ -64,7 +65,7 @@ defmodule PC.Dropdown do
 
           <%= if @label do %>
             <%= @label %>
-            <Heroicons.chevron_down solid class="w-5 h-5 ml-2 -mr-1 dark:text-gray-100" />
+            <.icon name="hero-chevron-down-solid" class="h-5 w-5 w-5 h-5 ml-2 -mr-1 dark:text-gray-100" />
           <% end %>
 
           <%= if @trigger_element do %>
@@ -72,13 +73,17 @@ defmodule PC.Dropdown do
           <% end %>
 
           <%= if !@label && @trigger_element == [] do %>
-            <Heroicons.ellipsis_vertical solid class="w-5 h-5" />
+            <.icon name="hero-ellipsis-vertical-solid" class="h-5 w-5w-5 h-5" />
           <% end %>
         </button>
       </div>
       <div
         {js_attributes("options_container", @js_lib, @options_container_id)}
-        class={"#{placement_class(@placement)} #{@menu_items_wrapper_class} absolute z-30 w-56 mt-2 bg-white rounded-md shadow-lg dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none"}
+        class={[
+          placement_class(@placement),
+          @menu_items_wrapper_class,
+          "absolute z-30 w-56 mt-2 bg-white rounded-md shadow-lg dark:bg-gray-800 ring-1 ring-black ring-opacity-5 focus:outline-none"
+        ]}
         role="menu"
         id={@options_container_id}
         aria-orientation="vertical"
@@ -94,7 +99,7 @@ defmodule PC.Dropdown do
 
   attr :to, :string, default: nil, doc: "link path"
   attr :label, :string, doc: "link label"
-  attr :class, :string, default: "", doc: "any additional CSS classes"
+  attr :class, :any, default: nil, doc: "any additional CSS classes"
   attr :disabled, :boolean, default: false
 
   attr :link_type, :string,
@@ -111,6 +116,7 @@ defmodule PC.Dropdown do
       to={@to}
       class={[@class, "flex items-center self-start justify-start w-full gap-2 px-4 py-2 text-sm text-left text-gray-700 transition duration-150 ease-in-out dark:hover:bg-gray-700 dark:text-gray-300 dark:bg-gray-800 hover:bg-gray-100", get_disabled_classes(@disabled)]}
       disabled={@disabled}
+      role="menuitem"
       {@rest}
     >
       <%= render_slot(@inner_block) || @label %>
@@ -157,12 +163,16 @@ defmodule PC.Dropdown do
   end
 
   defp js_attributes("container", "live_view_js", options_container_id) do
+    hide =
+      JS.hide(
+        to: "##{options_container_id}",
+        transition: {@transition_out_base, @transition_out_start, @transition_out_end}
+      )
+
     %{
-      "phx-click-away":
-        JS.hide(
-          to: "##{options_container_id}",
-          transition: {@transition_out_base, @transition_out_start, @transition_out_end}
-        )
+      "phx-click-away": hide,
+      "phx-window-keydown": hide,
+      "phx-key": "Escape"
     }
   end
 

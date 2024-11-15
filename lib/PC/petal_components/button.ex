@@ -3,7 +3,7 @@ defmodule PC.Button do
 
   alias PC.Loading
   alias PC.Link
-  alias PC.Icon
+  import PC.Icon
 
   require Logger
 
@@ -34,14 +34,14 @@ defmodule PC.Button do
   attr :to, :string, default: nil, doc: "link path"
   attr :loading, :boolean, default: false, doc: "indicates a loading state"
   attr :disabled, :boolean, default: false, doc: "indicates a disabled state"
-  attr :icon, :atom, default: nil, doc: "name of a Heroicon at the front of the button"
+  attr :icon, :any, default: nil, doc: "name of a Heroicon at the front of the button"
   attr :with_icon, :boolean, default: false, doc: "adds some icon base classes"
 
   attr :link_type, :string,
     default: "button",
     values: ["a", "live_patch", "live_redirect", "button"]
 
-  attr :class, :string, default: "", doc: "CSS class"
+  attr :class, :any, default: nil, doc: "CSS class"
   attr :label, :string, default: nil, doc: "labels your button"
 
   attr :rest, :global,
@@ -60,7 +60,7 @@ defmodule PC.Button do
         <Loading.spinner show={true} size_class={"animate-spin--#{@size}"} />
       <% else %>
         <%= if @icon do %>
-          <Icon.icon name={@icon} mini class={"animate-spin--#{@size}"} />
+          <.icon name={@icon} class={"animate-spin--#{@size}"} />
         <% end %>
       <% end %>
 
@@ -92,7 +92,7 @@ defmodule PC.Button do
     default: "button",
     values: ["a", "live_patch", "live_redirect", "button"]
 
-  attr :class, :string, default: "", doc: "CSS class"
+  attr :class, :any, default: nil, doc: "CSS class"
   attr :tooltip, :string, default: nil, doc: "tooltip text"
 
   attr :rest, :global,
@@ -116,7 +116,10 @@ defmodule PC.Button do
       disabled={@disabled}
       {@rest}
     >
-      <div class={@tooltip && "relative group/inline-block p-2 rounded-full flex flex-col items-center"}>
+      <span class={[
+        "flex flex-col items-center",
+        @tooltip && "group/inline-block p-2 rounded-full relative"
+      ]}>
         <%= if @loading do %>
           <Loading.spinner show={true} size_class={"inline-block p-2 rounded-full-spinner--#{@size}"} />
         <% else %>
@@ -129,7 +132,7 @@ defmodule PC.Button do
             <div class="w-3 h-3 -mt-2 rotate-45 bg-gray-900 dark:bg-gray-700"></div>
           </div>
         <% end %>
-      </div>
+      </span>
     </Link.a>
     """
   end

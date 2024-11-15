@@ -15,7 +15,7 @@ defmodule PC.Menu do
             name: :sign_in,
             label: "Sign in",
             path: "/sign-in,
-            icon: :key,
+            icon: "hero-key",
           }
         ]
 
@@ -39,10 +39,10 @@ defmodule PC.Menu do
   Let's say you have three menu items that point to the same live view. In this case we can utilize a live_patch link. To do this, you add the `patch_group` key to the menu item.
 
       [
-        %{name: :one, label: "One", path: "/one, icon: :key, patch_group: :my_unique_group},
-        %{name: :two, label: "Two", path: "/two, icon: :key, patch_group: :my_unique_group},
-        %{name: :three, label: "Three", path: "/three, icon: :key, patch_group: :my_unique_group},
-        %{name: :another_link, label: "Other", path: "/other, icon: :key},
+        %{name: :one, label: "One", path: "/one, icon: "hero-key", patch_group: :my_unique_group},
+        %{name: :two, label: "Two", path: "/two, icon: "hero-key", patch_group: :my_unique_group},
+        %{name: :three, label: "Three", path: "/three, icon: "hero-key", patch_group: :my_unique_group},
+        %{name: :another_link, label: "Other", path: "/other, icon: "hero-key"},
       ]
 
   Now, if you're on page `:one`, and click a link in the menu to either `:two`, or `:three`, the live view will be patched because they are in the same `patch_group`. If you click `:another_link`, the live view will be redirected.
@@ -80,19 +80,19 @@ defmodule PC.Menu do
           %{
             name: :auth,
             label: "Auth",
-            icon: :key,
+            icon: "hero-key",
             menu_items: [
               %{
                 name: :sign_in,
                 label: "Sign in",
                 path: "/sign-in,
-                icon: :key,
+                icon: "hero-key",
               },
               %{
                 name: :sign_up,
                 label: "Sign up",
                 path: "/sign-up,
-                icon: :key,
+                icon: "hero-key",
               },
             ]
           }
@@ -129,14 +129,13 @@ defmodule PC.Menu do
   attr :title, :string, default: nil
 
   attr(:js_lib, :string,
-    default: "alpine_js",
+    default: PC.default_js_lib(),
     values: ["alpine_js", "live_view_js"],
     doc: "javascript library used for toggling"
   )
 
   def vertical_menu(%{menu_items: []} = assigns) do
     ~H"""
-
     """
   end
 
@@ -168,7 +167,7 @@ defmodule PC.Menu do
   attr :title, :string
 
   attr(:js_lib, :string,
-    default: "alpine_js",
+    default: PC.default_js_lib(),
     values: ["alpine_js", "live_view_js"],
     doc: "javascript library used for toggling"
   )
@@ -206,7 +205,7 @@ defmodule PC.Menu do
   attr :link_type, :string, default: "live_redirect"
 
   attr(:js_lib, :string,
-    default: "alpine_js",
+    default: PC.default_js_lib(),
     values: ["alpine_js", "live_view_js"],
     doc: "javascript library used for toggling"
   )
@@ -255,9 +254,10 @@ defmodule PC.Menu do
         </div>
 
         <div class="relative inline-block">
-          <Heroicons.chevron_right
+          <.icon
+            name="hero-chevron-right"
             id={@icon_id}
-            {js_attributes("icon", @js_lib, %{class: "w-3 h-3 ml-2 transition duration-200 transform", name: @name, current_page: @current_page, menu_items: @menu_items})}
+            {js_attributes("icon", @js_lib, %{class: "w-3 h-3 ml-2 transition duration-200 transform !important", name: @name, current_page: @current_page, menu_items: @menu_items})}
           />
         </div>
       </button>
@@ -277,18 +277,17 @@ defmodule PC.Menu do
 
   defp menu_icon(assigns) do
     ~H"""
-    <.icon :if={is_atom(@icon)} outline name={@icon} class={menu_icon_classes(@is_active)} />
-
-    <%= if is_function(@icon) do %>
-      <%= Phoenix.LiveView.TagEngine.component(
-        @icon,
-        [class: menu_icon_classes(@is_active)],
-        {__ENV__.module, __ENV__.function, __ENV__.file, __ENV__.line}
-      ) %>
-    <% end %>
-
-    <%= if is_binary(@icon) do %>
-      <%= Phoenix.HTML.raw(@icon) %>
+    <%= cond do %>
+      <% is_function(@icon) -> %>
+        <%= Phoenix.LiveView.TagEngine.component(
+          @icon,
+          [class: menu_icon_classes(@is_active)],
+          {__ENV__.module, __ENV__.function, __ENV__.file, __ENV__.line}
+        ) %>
+      <% is_binary(@icon) && String.match?(@icon, ~r/svg|img/) -> %>
+        <%= Phoenix.HTML.raw(@icon) %>
+      <% true -> %>
+        <.icon name={@icon} class={menu_icon_classes(@is_active)} />
     <% end %>
     """
   end

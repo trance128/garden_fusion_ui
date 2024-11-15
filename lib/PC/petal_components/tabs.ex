@@ -4,19 +4,19 @@ defmodule PC.Tabs do
   alias PC.Link
 
   attr(:underline, :boolean, default: false, doc: "underlines your tabs")
-  attr(:class, :any, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:rest, :global)
   slot(:inner_block, required: false)
 
   def tabs(assigns) do
     ~H"""
-    <div {@rest} class={["flex gap-x-8 gap-y-2", @underline && "flex gap-x-8 gap-y-2--underline", @class]}>
+    <nav {@rest} class={["flex gap-x-8 gap-y-2", @underline && "flex gap-x-8 gap-y-2--underline", @class]} role="tablist">
       <%= render_slot(@inner_block) %>
-    </div>
+    </nav>
     """
   end
 
-  attr(:class, :string, default: "", doc: "CSS class")
+  attr(:class, :any, default: nil, doc: "CSS class")
   attr(:label, :string, default: nil, doc: "labels your tab")
 
   attr(:link_type, :string,
@@ -40,6 +40,8 @@ defmodule PC.Tabs do
       to={@to}
       class={get_tab_class(@is_active, @underline) ++ [@class]}
       disabled={@disabled}
+      role="tab"
+      aria-selected={@is_active}
       {@rest}
     >
       <%= if @number do %>

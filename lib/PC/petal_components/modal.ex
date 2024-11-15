@@ -3,10 +3,12 @@ defmodule PC.Modal do
 
   alias Phoenix.LiveView.JS
 
+  import PC.Icon
+
   attr :id, :string, default: "modal", doc: "modal id"
   attr :hide, :boolean, default: false, doc: "modal is hidden"
   attr :title, :string, default: nil, doc: "modal title"
-  attr :class, :string, default: nil, doc: "modal class"
+  attr :class, :any, default: nil, doc: "modal class"
 
   attr :close_modal_target, :string,
     default: nil,
@@ -54,7 +56,12 @@ defmodule PC.Modal do
       class="hidden relative z-50"
     >
       <div class="fixed inset-0 z-50 transition-opacity bg-gray-50/90 dark:bg-gray-900/90" aria-hidden="true"></div>
-      <div class="fixed inset-0 z-50 flex items-center justify-center px-4 my-4 overflow-hidden transform sm:px-6" role="dialog" aria-modal="true">
+      <div
+        class="fixed inset-0 z-50 flex items-center justify-center px-4 my-4 overflow-hidden transform sm:px-6"
+        aria-labelledby={"font-semibold text-gray-800 dark:text-gray-200-#{@id}"}
+        role="dialog"
+        aria-modal="true"
+      >
         <div
           class={@classes}
           phx-click-away={@close_on_click_away && JS.exec("data-cancel", to: "##{@id}")}
@@ -64,7 +71,7 @@ defmodule PC.Modal do
           <!-- Header -->
           <div class="px-5 py-3 border-b border-gray-100 dark:border-gray-700">
             <div class="flex items-center justify-between">
-              <div class="font-semibold text-gray-800 dark:text-gray-200">
+              <div id={"font-semibold text-gray-800 dark:text-gray-200-#{@id}"} class="font-semibold text-gray-800 dark:text-gray-200">
                 <%= @title %>
               </div>
               <%= unless @hide_close_button do %>
@@ -74,7 +81,7 @@ defmodule PC.Modal do
                   class="text-gray-400 hover:text-gray-500"
                 >
                   <div class="sr-only">Close</div>
-                  <Heroicons.x_mark class="w-5 h-5 fill-current" />
+                  <.icon name="hero-x-mark" class="w-5 h-5 fill-current" />
                 </button>
               <% end %>
             </div>

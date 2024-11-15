@@ -7,9 +7,10 @@ defmodule PC.Pagination do
   import PC.PaginationInternal
 
   alias PC.Link
+  import PC.Icon
 
   attr :path, :string, default: "/:page", doc: "page path"
-  attr :class, :string, default: "", doc: "parent div CSS class"
+  attr :class, :any, default: nil, doc: "parent div CSS class"
 
   attr :link_type, :string,
     default: "a",
@@ -43,7 +44,7 @@ defmodule PC.Pagination do
 
   def pagination(assigns) do
     ~H"""
-    <div {@rest} class={"#{@class} flex"}>
+    <div {@rest} class={["flex", @class]}>
       <ul class="inline-flex -space-x-px text-sm font-medium">
         <%= for item <- get_pagination_items(@total_pages, @current_page, @sibling_count, @boundary_count) do %>
           <%= if item.type == "prev" and (item.enabled? or @show_boundary_chevrons) do %>
@@ -57,7 +58,7 @@ defmodule PC.Pagination do
                 class="mr-2 inline-flex items-center justify-center rounded leading-5 px-2.5 py-2 bg-white enabled:hover:bg-gray-50 dark:bg-gray-900 enabled:dark:hover:bg-gray-800 border dark:border-gray-700 border-gray-200 text-gray-600 enabled:hover:text-gray-800 disabled:opacity-50"
                 disabled={!item.enabled?}
               >
-                <Heroicons.chevron_left solid class="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                <.icon name="hero-chevron-left-solid" class="w-5 h-5 text-gray-600 dark:text-gray-400 !important" />
               </Link.a>
             </div>
           <% end %>
@@ -100,7 +101,7 @@ defmodule PC.Pagination do
                 class="ml-2 inline-flex items-center justify-center rounded leading-5 px-2.5 py-2 bg-white enabled:hover:bg-gray-50 dark:bg-gray-900 enabled:dark:hover:bg-gray-800 dark:border-gray-700 border border-gray-200 text-gray-600 enabled:hover:text-gray-800 disabled:opacity-50"
                 disabled={!item.enabled?}
               >
-                <Heroicons.chevron_right solid class="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                <.icon name="hero-chevron-right-solid" class="w-5 h-5 text-gray-600 dark:text-gray-400 !important" />
               </Link.a>
             </div>
           <% end %>
