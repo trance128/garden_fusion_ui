@@ -10,7 +10,12 @@ defmodule PC.Card do
 
   def card(assigns) do
     ~H"""
-    <div {@rest} class={["flex flex-wrap overflow-hidden bg-white dark:bg-gray-800", "flex flex-wrap overflow-hidden bg-white dark:bg-gray-800--#{@variant}", @class]}>
+    <div
+      {@rest}
+      class={[
+        "flex flex-wrap overflow-hidden bg-card rounded-xl border border-border",
+        @class
+      ]}>
       <div class="flex flex-col w-full max-w-full">
         <%= render_slot(@inner_block) %>
       </div>
@@ -29,7 +34,7 @@ defmodule PC.Card do
     <%= if @src do %>
       <img {@rest} src={@src} class={["flex-shrink-0 object-cover w-full", @aspect_ratio_class, @class]} />
     <% else %>
-      <div {@rest} class={["flex-shrink-0 w-full bg-gray-300 dark:bg-gray-700", @aspect_ratio_class, @class]}></div>
+      <div {@rest} class={["flex-shrink-0 w-full bg-card ", @aspect_ratio_class, @class]}></div>
     <% end %>
     """
   end
