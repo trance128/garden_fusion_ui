@@ -8,6 +8,7 @@ defmodule PC do
         Badge,
         Breadcrumbs,
         Button,
+        ButtonGroup,
         Card,
         Container,
         Dropdown,
@@ -17,11 +18,14 @@ defmodule PC do
         Input,
         Link,
         Loading,
+        Marquee,
         Modal,
         Pagination,
         Progress,
         Rating,
+        Skeleton,
         SlideOver,
+        Stepper,
         Table,
         Tabs,
         Typography,
@@ -31,5 +35,10 @@ defmodule PC do
 
       alias PC.HeroiconsV1
     end
+  end
+
+  @default_js_lib Application.compile_env(:petal_components, :default_js_lib, "alpine_js")
+  def default_js_lib() do
+    @default_js_lib
   end
 end
